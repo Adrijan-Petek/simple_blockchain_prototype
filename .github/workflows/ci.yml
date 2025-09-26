@@ -11,42 +11,53 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # 1️⃣ Checkout repo
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # 2️⃣ Setup Python
     - name: Setup Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
 
+    # 3️⃣ Install dependencies
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install flake8 pytest
 
+    # 4️⃣ Lint code
     - name: Lint source code
       run: |
         flake8 src --count --statistics \
           --max-line-length=100 \
           --ignore=E203,E226,E228,E231,E302,E401,E402,E501,F401,F841,W292
 
+    # 5️⃣ Run unit tests
     - name: Run unit tests
-      run: pytest -q --maxfail=1 --disable-warnings -v
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+        pytest -v --disable-warnings
 
-    - name: Prepare artifact folders
+    # 6️⃣ Prepare artifact folders
+    - name: Prepare folders
       run: |
         mkdir -p charts outputs
 
+    # 7️⃣ Run demo script (root-level)
     - name: Run demo script
       run: bash ./run_demo.sh
 
+    # 8️⃣ Upload charts
     - name: Upload charts
       uses: actions/upload-artifact@v4
       with:
         name: charts
         path: charts/
 
+    # 9️⃣ Upload outputs
     - name: Upload outputs
       uses: actions/upload-artifact@v4
       with:
