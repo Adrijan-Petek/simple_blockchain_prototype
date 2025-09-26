@@ -1,24 +1,26 @@
-import hashlib, json, time
+import hashlib
+import json
+import time
 from typing import List
 
 class Block:
     def __init__(self, index: int, transactions: List[dict], previous_hash: str, difficulty: int = 2):
         self.index = index
-        self.timestamp = time.time()
         self.transactions = transactions
         self.previous_hash = previous_hash
+        self.difficulty = difficulty
         self.nonce = 0
-        self.hash = self.compute_hash(difficulty)
+        self.timestamp = time.time()
+        self.hash = self.compute_hash()
 
-    def compute_hash(self, difficulty: int) -> str:
-        prefix = "0" * difficulty
-        while True:
-            block_string = json.dumps(self.__dict__, sort_keys=True, default=str)
-            block_hash = hashlib.sha256(block_string.encode()).hexdigest()
-            if block_hash.startswith(prefix):
-                return block_hash
-            else:
-                self.nonce += 1
+    def compute_hash(self) -> str:
+        """
+        Compute the SHA-256 hash of the block's contents (excluding the hash itself).
+        """
+        block_dict = self.__dict__.copy()
+        block_dict.pop("hash", None)  # Exclude existing hash
+        return hashlib.sha256(json.dumps(block_dict, sort_keys=True, default=str).encode()).hexdigest()
+
 
 class Blockchain:
     def __init__(self, difficulty: int = 2):
@@ -59,7 +61,14 @@ class Blockchain:
         for i in range(1, len(self.chain)):
             current = self.chain[i]
             prev = self.chain[i - 1]
-            recomputed_hash = hashlib.sha256(json.dumps(current.__dict__, sort_keys=True, default=str).encode()).hexdigest()
+
+            # Recompute hash excluding 'hash' field
+            block_dict = current.__dict__.copy()
+            block_dict.pop("hash", None)
+            recomputed_hash = hashlib.sha256(
+                json.dumps(block_dict, sort_keys=True, default=str).encode()
+            ).hexdigest()
+
             if recomputed_hash != current.hash or current.previous_hash != prev.hash:
                 return False
         return True
