@@ -32,10 +32,14 @@ jobs:
           --ignore=E203,E226,E228,E231,E302,E401,E402,E501,F401,F841,W292
 
     - name: Run unit tests
-      run: pytest -q --maxfail=1 --disable-warnings -v || true
+      run: pytest -q --maxfail=1 --disable-warnings -v
+
+    - name: Prepare artifact folders
+      run: |
+        mkdir -p charts outputs
 
     - name: Run demo script
-      run: bash run_demo.sh || true
+      run: bash ./run_demo.sh
 
     - name: Upload charts
       uses: actions/upload-artifact@v4
