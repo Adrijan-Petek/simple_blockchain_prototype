@@ -1,16 +1,31 @@
+import time
 from src.blockchain import Block, Blockchain
-
-def test_block_creation():
-    bc = Blockchain()
-    # If your blockchain uses 'add_block', adjust here
-    new_block = Block(index=1, previous_hash=bc.chain[-1].hash, transactions=["test data"])
-    bc.add_block(new_block)
-    assert len(bc.chain) == 2
-    assert bc.chain[1].transactions[0] == "test data"
 
 def test_genesis_block():
     bc = Blockchain()
     genesis = bc.chain[0]
-    # Adjust according to your Block fields
     assert isinstance(genesis, Block)
-    assert len(genesis.transactions) == 0  # or whatever your genesis block contains
+    assert genesis.transactions[0]["msg"] == "Genesis Block"
+    assert genesis.previous_hash == "0"
+
+def test_mine_block():
+    bc = Blockchain()
+    bc.add_transaction("Alice", "Bob", 50)
+    mined_block = bc.mine_block()
+    
+    # Verify block was mined
+    assert mined_block is not None
+    assert mined_block.transactions[0]["sender"] == "Alice"
+    assert mined_block.transactions[0]["receiver"] == "Bob"
+    assert len(bc.pending_transactions) == 0  # pending transactions cleared
+    assert len(bc.chain) == 2  # genesis + mined block
+
+def test_chain_validation():
+    bc = Blockchain()
+    bc.add_transaction("Alice", "Bob", 50)
+    bc.mine_block()
+    assert bc.is_chain_valid() is True
+    
+    # Tamper with a block
+    bc.chain[1].transactions[0]["amount"] = 1000
+    assert bc.is_chain_valid() is False
