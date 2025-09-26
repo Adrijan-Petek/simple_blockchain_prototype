@@ -1,4 +1,3 @@
-```
 # Simple Blockchain Prototype
 
 A minimal Python blockchain implementation with:
